@@ -135,8 +135,8 @@ for(i in 1:nwhales)  {
     	whaletable[i, 26] <- 3
     }
     }  else  {
-  	whaletable[i,25] <- 0
-  	whaletable[i,26] <- 0
+  	whaletable[i,25] <- 0								#record strikes as 0 if whale has not been struck
+  	whaletable[i,26] <- 0								#record strike_severity as 0 if whale has not been struck
   }
   
   # we usually use 0 instead of NA so that in the regression, inapplicable whales will have 0 adjustment
