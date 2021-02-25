@@ -55,8 +55,8 @@ source("SemiAutomaticBehaviorParsing3.2.R")
 # load functions
 #setwd("~/Documents/Research/Right whales/")
 #setwd("/Users/vitor/Desktop/Right Whales/")
-source(" Code/whalefunctions.R")
-#source(" Code/abm38.2inv.R")
+source("whalefunctions.R")
+source("abm38.2inv.R")
 
 
 
@@ -78,6 +78,7 @@ now <- as.numeric(converttime(finalyear, 12, 31, 2359))
 
 #read in vessel strike data
 vesselData <- read.csv('Vessel strike events for Steve Wang.csv')
+#1128, 1501, 1504 seen before 1986
 
 #head(vesselData)
 
@@ -132,11 +133,10 @@ for(i in 1:nwhales)  {
     } 
     else if(grepl("DEEP", vesselData[,"VesselStrikeComment"][tempid==vesselID], fixed="True")){
     	whaletable[i, 26] <- 3
-    } else {
-    	whaletable[i, 26] <- 0
     }
     }  else  {
   	whaletable[i,25] <- 0
+  	whaletable[i,26] <- 0
   }
   
   # we usually use 0 instead of NA so that in the regression, inapplicable whales will have 0 adjustment
@@ -278,6 +278,14 @@ alive <- 1 - dead
 sickNow <- whaletable[,"sickNow"]
 sickEver <- whaletable[,"sickEver"]
 
+strikes <- whaletable[,"strikes"]
+strike_severity <- whaletable[,"strike_severity"]
+table(strike_severity)
+strike_severity <- factor(strike_severity, ordered=TRUE)
+strikeEver <- strikes > 0
+table(strike_severity)
+strikeEver2 <- strikeEver + 0.0
+
 # recode disentglEver to separate out never-entangled and disentangled
 disentglEver[entglEver==1 & disentglEver==0] <- -1
 
@@ -294,7 +302,7 @@ firstyear1 <- (firstyear-initialyear)
 firstyear2 <- (firstyear-initialyear)^2
 fit0 <- (glm(alive ~ female + entglEver + entglNow + momwcalfEver + momwcalfNow 
              + feedEver  + sagEver + disentglEver  
-             + sickmed + adult + firstyear1 + firstyear2, 
+             + sickmed + adult + firstyear1 + firstyear2 + strike_severity, 
              family="binomial"));   summary(fit0)   
 # feedNow and sagNow have huge SDs
 # note alive means not confirmed dead; it doesn't mean confirmed alive
