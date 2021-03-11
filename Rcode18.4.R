@@ -127,9 +127,11 @@ for(i in 1:nwhales)  {
   	whaletable[i,25] <- max(vesselData[,"EventNo"][tempid==vesselID])
     if(grepl("SUPERFICIAL", vesselData[,"VesselStrikeComment"][tempid==vesselID], fixed="True")){
     	whaletable[i, 26] <- 1
+    	whaletable[i,27] <- 0
     } 
     else if(grepl("SHALLOW", vesselData[,"VesselStrikeComment"][tempid==vesselID], fixed="True")){
     	whaletable[i, 26] <- 2
+    	whaletable[i,27] <- 0
     } 
     else if(grepl("DEEP", vesselData[,"VesselStrikeComment"][tempid==vesselID], fixed="True")){
     	whaletable[i, 26] <- 3
