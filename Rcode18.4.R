@@ -92,7 +92,7 @@ id <- data[,"SightingEGNo"]                              # whale ID number
 nwhales <- length(table(id))                             # number of sighted whales
 idlist <- rownames(table(id))                            # list of distinct whale ID numbers
 numrows <- dim(data)[1]                                  # number of sightings in database
-whaletable <- matrix(NA,nwhales,26)                      # whale-level database
+whaletable <- matrix(NA,nwhales,27)                      # whale-level database
 
 for(i in 1:nwhales)  {
   tempid <- as.numeric(idlist[i])                        # id numberof current whale
@@ -133,10 +133,12 @@ for(i in 1:nwhales)  {
     } 
     else if(grepl("DEEP", vesselData[,"VesselStrikeComment"][tempid==vesselID], fixed="True")){
     	whaletable[i, 26] <- 3
+    	whaletable[i, 27] <- 1
     }
     }  else  {
   	whaletable[i,25] <- 0								#record strikes as 0 if whale has not been struck
   	whaletable[i,26] <- 0								#record strike_severity as 0 if whale has not been struck
+  	whaletable[i,27] <- 0								#record deepStrike as 0 if whale has not been struck
   }
   
   # we usually use 0 instead of NA so that in the regression, inapplicable whales will have 0 adjustment
@@ -164,7 +166,7 @@ for(i in 1:nwhales)  {
 colnames(whaletable) <- c("id","sex","age","firstyear","lastyear","sightings",
                           "sagEver","sagNow","feedEver","feedNow","momwcalfNow","momwcalfEver", 
                           "entglEver","entglNow","fentglyear","disentglEver","disentglNow","disentglyear",
-                          "yearsentgl","sickEver","sickNow","medicalEver","medicalNow","dead","strikes", "strike_severity")
+                          "yearsentgl","sickEver","sickNow","medicalEver","medicalNow","dead","strikes", "strike_severity", "deepStrike")
 
 write.table(whaletable, "whaletable.txt", sep="\t", row.names=F)
 whaletable <- whaletable[whaletable[,"lastyear"]>=initialyear,]
@@ -285,6 +287,7 @@ strike_severity <- factor(strike_severity, ordered=TRUE)
 strikeEver <- strikes > 0
 table(strike_severity)
 strikeEver2 <- strikeEver + 0.0
+deepStrike <- whaletable[,"deepStrike"]
 
 # recode disentglEver to separate out never-entangled and disentangled
 disentglEver[entglEver==1 & disentglEver==0] <- -1
@@ -302,7 +305,7 @@ firstyear1 <- (firstyear-initialyear)
 firstyear2 <- (firstyear-initialyear)^2
 fit0 <- (glm(alive ~ female + entglEver + entglNow + momwcalfEver + momwcalfNow 
              + feedEver  + sagEver + disentglEver  
-             + sickmed + adult + firstyear1 + firstyear2 + strike_severity, 
+             + sickmed + adult + firstyear1 + firstyear2 + deepStrike, 
              family="binomial"));   summary(fit0)   
 # feedNow and sagNow have huge SDs
 # note alive means not confirmed dead; it doesn't mean confirmed alive
@@ -553,7 +556,7 @@ probalive_abm <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
   # Changing the ext value to be either TRUE or FALSE really effects the final result.
   # F gives a distribution of estimated survival that is very similar to the Solow method
   # As of 1/9/2020 ext is set to T but I am unsure why that is the case.
-  prob_i_abm <- abm38inv(tempsightings, ext=F, distance=F, now=now)
+  prob_i_abm <- abm38inv(tempsightings, ext=T, distance=F, now=now)
   prob_i_abm
 }
 
