@@ -558,13 +558,14 @@ probalive_abm <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
   # Changing the ext value to be either TRUE or FALSE really effects the final result.
   # F gives a distribution of estimated survival that is very similar to the Solow method
   # As of 1/9/2020 ext is set to T but I am unsure why that is the case.
-  prob_i_abm <- abm38inv(tempsightings, ext=T, distance=F, now=now)
+  prob_i_abm <- abm38inv(tempsightings, ext=T, distance=T, now=now)
   prob_i_abm
 }
 
 # Saves a copy of the probabilities for future reference
 probaliveold_solow <- probalive_solow                            
 probaliveold_abm <- probalive_abm
+print(sum(probaliveold_abm)) #sum of P(alive) before logistic regression
 
 
 ####Trying to figure out what is causing such a difference in abm and solow####
@@ -646,6 +647,7 @@ for(i in 1:b)  {
   oddsalive_abm[i] <- oddsalive_abm[i]*adjustment
 }
 probalive_abm <- oddsalive_abm/(1+oddsalive_abm)
+print(sum(probalive_abm)) #sum of P(alive) after logistic regression
 ####.####
 
 
@@ -1012,31 +1014,31 @@ title(main="Figure 1: Effect of adjusting for covariates")
 ####ABM: old and new prob alive####
 plot(probaliveold_abm, probalive_abm, type="n", xlim = c(0,1), ylim = c(0,1))
 subset1 <- whaletable
-points(probaliveold_abm[subset1], probalive_abm[subset1], col="red", pch=16)
+#points(probaliveold_abm[subset1], probalive_abm[subset1], col="red", pch=1)
 
 tmpwhaletable <- as.tibble(whaletable)
 
 # Create subsets
-subsetFemale <- tmpwhaletable$"sex"==1
+subsetFemale <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==0 & tmpwhaletable$"momwcalfNow"==0 & tmpwhaletable$"entglEver"==0
 subsetMale <- tmpwhaletable$"sex"==2
 
-subsetMother <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==1
-subsetMotherWithCalf <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfNow"==1
+subsetMother <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==1 & tmpwhaletable$"entglEver"==0
+subsetMotherWithCalf <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfNow"==1 & tmpwhaletable$"entglEver"==0
 
-subsetMotherEntgl <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==1 & tmpwhaletable$"entglEver"==1
+subsetMotherEntgl <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==1 & tmpwhaletable$"entglEver"==1 
 subsetMotherWithCalfEntgl <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfNow"==1 & tmpwhaletable$"entglEver"==1
 
 subsetNonadult <- tmpwhaletable$"age"!=1
 # subsetNotMother <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==0 
 # Plot points
-points(probaliveold_abm[subsetFemale], probalive_abm[subsetFemale], col="blue", pch=16)
-points(probaliveold_abm[subsetMale],probalive_abm[subsetMale], col = "cyan", pch=16)
+points(probaliveold_abm[subsetFemale], probalive_abm[subsetFemale], col="blue", pch=2, cex=.5)
+points(probaliveold_abm[subsetMale],probalive_abm[subsetMale], col = "cyan", pch=1, cex=.5)
 
-points(probaliveold_abm[subsetMother], probalive_abm[subsetMother], col="darkorange", pch=16)
-points(probaliveold_abm[subsetMotherWithCalf],probalive_abm[subsetMotherWithCalf], col = "gold", pch=16)
+points(probaliveold_abm[subsetMother], probalive_abm[subsetMother], col="darkorange", pch=2, cex=.5)
+points(probaliveold_abm[subsetMotherWithCalf],probalive_abm[subsetMotherWithCalf], col = "gold", pch=2, cex=.5)
 
-points(probaliveold_abm[subsetMotherEntgl], probalive_abm[subsetMotherEntgl], col="purple", pch=16)
-points(probaliveold_abm[subsetMotherWithCalfEntgl],probalive_abm[subsetMotherWithCalfEntgl], col = "palevioletred1", pch=16)
+points(probaliveold_abm[subsetMotherEntgl], probalive_abm[subsetMotherEntgl], col="purple", pch=2, cex=.5)
+points(probaliveold_abm[subsetMotherWithCalfEntgl],probalive_abm[subsetMotherWithCalfEntgl], col = "palevioletred1", pch=2, cex=.5)
 
 # points(probaliveold_abm[subsetNonadult], probalive_abm[subsetNonadult], col="black", pch=16)
 
