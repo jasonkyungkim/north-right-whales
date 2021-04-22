@@ -543,7 +543,7 @@ b<-nrow(whaletable)
 # Parallel, create vector of P(alive for all sighted whales)
 dev.off()
 # Calculates probability alive using Solow method
-probalive_solow <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
+probalive_solow <- foreach(i=1:b, .combine="c", .inorder=TRUE) %dopar% {
   tempid <- whaletable[i,"id"]                            # ID number of current whale
   tempsightings <- stdtime[id==tempid]                   # select matching sightings
   prob_i_solow <- solow(tempsightings, now=now)
@@ -552,7 +552,7 @@ probalive_solow <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
 
 # Calculates probability alive using Steve's ABM method
 # Unclear if this us how to accurately use this method. Should be reviewed
-probalive_abm <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
+probalive_abm <- foreach(i=1:b, .combine="c", .inorder=TRUE) %dopar% {
   tempid <- whaletable[i,"id"]                            # ID number of current whale
   tempsightings <- stdtime[id==tempid]                   # select matching sightings
   # Changing the ext value to be either TRUE or FALSE really effects the final result.
@@ -565,6 +565,7 @@ probalive_abm <- foreach(i=1:b, .combine="c", .inorder=FALSE) %dopar% {
 # Saves a copy of the probabilities for future reference
 probaliveold_solow <- probalive_solow                            
 probaliveold_abm <- probalive_abm
+whaletable <- cbind(whaletable, probaliveold_solow, probaliveold_abm)
 print(sum(probaliveold_abm)) #sum of P(alive) before logistic regression
 
 
@@ -886,7 +887,7 @@ cores=detectCores()
 cl <- makeCluster(cores-1) # not to overload your computer
 registerDoParallel(cl)
 ####Need to round because values too close to 0 are rounded to 0 which ruins function below####
-probalive_abm <- plyr::round_any(probalive_abm, 0.1, f=ceiling)
+#probalive_abm <- plyr::round_any(probalive_abm, 0.1, f=ceiling)
 
 results_abm = foreach(rep=1:numreps, .combine=rbind, .inorder=FALSE) %dopar% {
   
@@ -1020,7 +1021,7 @@ tmpwhaletable <- as.tibble(whaletable)
 
 # Create subsets
 subsetFemale <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==0 & tmpwhaletable$"momwcalfNow"==0 & tmpwhaletable$"entglEver"==0
-subsetMale <- tmpwhaletable$"sex"==2
+subsetMale <- tmpwhaletable$"sex"==2 & tmpwhaletable$"entglEver"==0
 
 subsetMother <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfEver"==1 & tmpwhaletable$"entglEver"==0
 subsetMotherWithCalf <- tmpwhaletable$"sex"==1 & tmpwhaletable$"momwcalfNow"==1 & tmpwhaletable$"entglEver"==0
