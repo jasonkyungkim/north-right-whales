@@ -546,10 +546,10 @@ dev.off()
 # Calculates probability alive using Solow method
 probalive_solow <- foreach(i=1:b, .combine="c", .inorder=TRUE) %dopar% {
   tempid <- whaletable[i,"id"]                            # ID number of current whale
-  #tempsightings <- stdtime[id==tempid]                   # select matching sightings
-  tempsightings <- data[data$SightingEGNo == tempid, ][,"SightingYear"]
+  tempsightings <- stdtime[id==tempid]                   # select matching sightings
+  #tempsightings <- data[data$SightingEGNo == tempid, ][,"SightingYear"]
   tempsightings <- sort(tempsightings)
-  prob_i_solow <- solow(tempsightings, now=2017)
+  prob_i_solow <- solow(tempsightings, now=now)
   prob_i_solow
 }
 
@@ -557,12 +557,12 @@ probalive_solow <- foreach(i=1:b, .combine="c", .inorder=TRUE) %dopar% {
 # Unclear if this us how to accurately use this method. Should be reviewed
 probalive_abm <- foreach(i=1:b, .combine="c", .inorder=TRUE) %dopar% {
   tempid <- whaletable[i,"id"]                            # ID number of current whale
-  #tempsightings <- stdtime[id==tempid]                   # select matching sightings
-  tempsightings <- data[data$SightingEGNo == tempid, ][,"SightingYear"]
+  tempsightings <- stdtime[id==tempid]                   # select matching sightings
+  #tempsightings <- data[data$SightingEGNo == tempid, ][,"SightingYear"]
   # Changing the ext value to be either TRUE or FALSE really effects the final result.
   # F gives a distribution of estimated survival that is very similar to the Solow method
   # As of 1/9/2020 ext is set to T but I am unsure why that is the case.
-  prob_i_abm <- abm38inv(tempsightings, ext=T, distance=T, now=2017)
+  prob_i_abm <- abm38inv(tempsightings, ext=T, distance=T, now=now)
   prob_i_abm
 }
 
